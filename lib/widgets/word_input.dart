@@ -1,31 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:word_memorizer/services/auth_service.dart';
 import 'package:word_memorizer/services/word_service.dart';
+import 'package:provider/provider.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class WordInput extends StatefulWidget {
-  const WordInput({super.key});
-
   @override
-  _WordInputState createState() => _WordInputState();
+  State<WordInput> createState() => _WordInputState();
 }
-Widget okButton = TextButton(
-    child: const Text("OK"),
-    onPressed: () { },
-  );
- // set up the AlertDialog
-  AlertDialog alert = AlertDialog(
-    title: const Text("My title"),
-    content: const Text("This is my message."),
-    actions: [
-      okButton,
-    ],
-  );
+
 class _WordInputState extends State<WordInput> {
   final TextEditingController _wordController = TextEditingController();
-  final WordService _wordService = WordService();
   late stt.SpeechToText _speech;
   bool _isListening = false;
 
@@ -58,23 +43,35 @@ class _WordInputState extends State<WordInput> {
   }
 
   void _addWord() async {
-    if (_wordController.text.isNotEmpty) {
-      final token = Provider.of<AuthService>(context, listen: false).token;
-        print('onError: $token');
-      if (token != null) {
-        showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return alert;
-    });
-        await _wordService.addWord(_wordController.text, token);
-        _wordController.clear();
-        setState(() {});
+     final wordService = Provider.of<WordService>(context, listen: false);
+    final token = Provider.of<AuthService>(context, listen: false).token;
 
+    if (token != null && _wordController.text.isNotEmpty) {
+      try {
+        await wordService.addWord(_wordController.text, token);
+        _wordController.clear(); // Clear the input field after adding the word
+        _showSnackBar('Word added successfully!');
+      } catch (e) {
+        _showSnackBar('Failed to add word. Please try again.');
       }
     }
-  }
+    // if (_wordController.text.isNotEmpty) {
+    //   if (token != null) {
+    //     await Provider.of<WordService>(context, listen: false).addWord(_wordController.text, token);
+    //     _wordController.clear();
+    //     _showSnackBar('Word added successfully!');
 
+    //   }
+    // }
+  }
+void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -87,6 +84,8 @@ class _WordInputState extends State<WordInput> {
               decoration: const InputDecoration(
                 hintText: 'Enter a word or phrase',
               ),
+              onSubmitted: (value) => _addWord(), // Handle Enter key press
+
             ),
           ),
           IconButton(

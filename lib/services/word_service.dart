@@ -1,14 +1,17 @@
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class Word {
+  final String id;
   final String text;
   int order;
 
-  Word({required this.text, required this.order});
+  Word({required this.id, required this.text, required this.order});
 
   factory Word.fromJson(Map<String, dynamic> json) {
     return Word(
+      id: json['id'],
       text: json['word'],
       order: json['order'],
     );
@@ -16,18 +19,19 @@ class Word {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'word': text,
       'order': order,
     };
   }
 }
 
-class WordService {
+class WordService extends ChangeNotifier {
   static final WordService _instance = WordService._internal();
   factory WordService() => _instance;
   WordService._internal();
-  static const String baseUrl = 'http://localhost:8080'; // Use this for iOS simulator
 
+  final String baseUrl = 'http://localhost:8080';  // Replace with your actual backend URL
   List<Word> _words = [];
 
   List<Word> get words => _words;
@@ -43,6 +47,7 @@ class WordService {
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       _words = data.map((item) => Word.fromJson(item)).toList();
+      notifyListeners();
     } else {
       throw Exception('Failed to fetch words');
     }
@@ -60,12 +65,29 @@ class WordService {
     );
 
     if (response.statusCode == 200) {
-      _words.add(Word(text: word, order: newOrder));
+      _words.add(Word(id: '', text: word, order: newOrder));
+      notifyListeners();
     } else {
       throw Exception('Failed to add word');
     }
   }
+  Future<void> deleteWord(String wordId, String token) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/words'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'word_id': wordId}),
+    );
 
+    if (response.statusCode == 200) {
+      words.removeWhere((word) => word.id == wordId);
+      notifyListeners();
+    } else {
+      throw Exception('Failed to delete word');
+    }
+  }
   Future<void> reorderWords(String token) async {
     final response = await http.put(
       Uri.parse('$baseUrl/words/reorder'),
@@ -76,7 +98,9 @@ class WordService {
       body: jsonEncode(_words.map((word) => word.toJson()).toList()),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) {
+      notifyListeners();
+    } else {
       throw Exception('Failed to reorder words');
     }
   }

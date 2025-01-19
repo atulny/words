@@ -126,6 +126,17 @@ async def reorder_words(words: List[Word], current_user: User = Depends(get_curr
     words_db[current_user['username']].sort(key=lambda x: x[1])  # Sort by order
     return {"message": "Words reordered successfully"}
 
+@app.delete("/words/{word_id}", status_code=status.HTTP_200_OK)
+async def delete_word(word_id: int, current_user: User = Depends(get_current_user)):
+    user_words = words_db.get(current_user['username'], [])
+    updated_words = [word for word in user_words if word[1] != word_id]
+    
+    if len(updated_words) == len(user_words):
+        raise HTTPException(status_code=404, detail="Word not found")
+    
+    words_db[current_user['username']] = updated_words
+    return {"message": "Word deleted successfully"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)

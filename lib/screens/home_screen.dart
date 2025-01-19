@@ -14,7 +14,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Word Memorizer AI'),
+        title: const Text('Word Memorizer'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -25,7 +25,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: const Column(
+      body: Column(
         children: [
           Expanded(child: WordList()),
           WordInput(),

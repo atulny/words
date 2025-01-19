@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:word_memorizer/screens/home_screen.dart';
 import 'package:word_memorizer/screens/login_screen.dart';
 import 'package:word_memorizer/services/auth_service.dart';
+import 'package:word_memorizer/services/word_service.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -12,8 +13,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initNotifications();
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthService(),
+     MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => WordService()),
+      ],
+   
       child: const MyApp(),
     ),
   );
@@ -35,7 +40,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Word Memorizer AI',
+      title: 'Word Memorizer',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
