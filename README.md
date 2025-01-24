@@ -15,6 +15,11 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
+
+echo "export FLUTTERPATH=\$HOME/flutter" >> ~/.zshrc
+echo "export PATH=\"\$PATH:\$FLUTTERPATH/bin\"" >> ~/.zshrc
+source ~/.zshrc
+
 flutter run -d web-server --web-port 5011
 flutter create .             
 flutter pub get
